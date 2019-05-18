@@ -1,13 +1,18 @@
 const state = require('./state.js')
 const gm = require('gm').subClass({imageMagick: true});
+const spawn = require('child_process').spawn
+const path = require('path')
+const rootPath = path.resolve(__dirname, '..')
 
 async function robot() {
 
     const content = state.load()
 
-    await convertAllImages(content)
-    await createAllSentencesImages(content)
-    await createYouTubeThumbnail()
+     await convertAllImages(content)
+     await createAllSentencesImages(content)
+     await createYouTubeThumbnail()
+     await createAfterEffectsScript(content)
+    await renderVideoWithAfterEffects()
 
     state.save(content)
 
@@ -125,6 +130,34 @@ async function robot() {
                     console.log('> Creating Youtube thumbnail')
                     resolve()
                 })
+        })
+    }
+    async function createAfterEffectsScript(content){
+        await state.saveScript(content)
+    }
+
+    async function renderVideoWithAfterEffects() {
+        return new Promise((resolve, reject) =>{
+            const aerenderFilePath = '/Program Files/Adobe/Adobe After Effects CC 2019/Support Files/aerender'
+            const templateFilePath = `${rootPath}/templates/1/template.aep`
+            const destinationFilePath = `${rootPath}/content/outputFile.mov`
+
+            console.log('> Starting After Effects')
+
+            const aerender = spawn(aerenderFilePath,[
+                '-comp', 'main',
+                '-project', templateFilePath,
+                '-output', destinationFilePath
+            ])
+
+            aerender.stdout.on('data', (data) => {
+                process.stdout.write(data)
+            })
+
+            aerender.on('close', () => {
+                console.log('> After Effects closed')
+                resolve()
+            })
         })
     }
 }
