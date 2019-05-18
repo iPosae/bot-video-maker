@@ -122,7 +122,7 @@ async function robot() {
         return new Promise((resolve, reject) => {
             gm()
                 .in('./content/0-converted.png')
-                .write('./content/youtube-trhumbnail.jpg', (error) =>{
+                .write('./content/youtube-thumbnail.jpg', (error) =>{
                     if (error) {
                         return reject(error)
                     }
